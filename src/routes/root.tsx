@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import React, {useState} from "react";
 import {Alert, Button, DatePicker, Form, Input, Select, Spin, TimeRangePickerProps} from "antd";
 import dayjs, {Dayjs} from "dayjs";
 import useSWR from "swr";
@@ -33,7 +33,7 @@ const LoginForm = () => {
     // TODO: 如何让上级重绘，触发SWR
   }
 
-  const onFinishFailed = (errorInfo) => {
+  const onFinishFailed = () => {
   }
 
   return (
@@ -76,15 +76,36 @@ const LoginForm = () => {
   )
 }
 
-const ContentSubmitForm = () => {
+const ContentSubmitForm: React.FC = () => {
   type PasteContentFieldType = {
     content: string,
     contentType: string,
     contentLanguage: string,
+    password?: string,
     expireTime: Dayjs,
+    key?: string,
   }
   const onFormFinish = (values: PasteContentFieldType) => {
-
+    const data = new FormData()
+    if (values.expireTime) {
+      data.append('expireTime', values.expireTime.toISOString())
+    }
+    data.append('contentType', values.contentType)
+    data.append('contentLanguage', values.contentLanguage)
+    const content = new Blob([values.content])
+    data.append('c', content, 'main')
+    const options = {
+      method: 'POST',
+      body: data,
+    }
+    fetch('/a/new', options)
+      .then(res => res.json())
+      .then(data => {
+        if (data.code === 200) {
+          // FIXME: 临时措施
+          window.location.href = `/s/${data.key}`
+        }
+      })
   }
   const onFormFinishFailed = () => {
 
@@ -151,6 +172,11 @@ const ContentSubmitForm = () => {
 }
 
 export default function Root() {
+  type NewContentInfoType = {
+    key: string,
+  }
+  // @ts-ignore
+  const [newContentInfo, setNewContentInfo] = useState<NewContentInfoType>()
   // Fetch user info
   type UserInfoResponseType = {
     code: number,
@@ -181,7 +207,7 @@ export default function Root() {
       {username ?
         <div id={"content"}>
           <Alert message={`Hello, ${username}`}/>
-          <ContentSubmitForm/>
+          <ContentSubmitForm />
         </div>
         :
         <div id={"loginRequired"}>

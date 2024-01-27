@@ -7,6 +7,7 @@ import {
 import './index.css'
 
 import Root from './routes/root'
+import Viewer from "./routes/viewer";
 
 
 const router = createBrowserRouter([
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
     path: '/',
     element: <Root/>
   },
+  {
+    path: '/s/:key',
+    element: <Viewer />
+  }
 ])
 
 
